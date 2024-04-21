@@ -90,18 +90,21 @@ int main() {
 
 	Shader lightShader("shader/3.3.only_diff.vert", "shader/3.3.only_diff.frag");
 	Shader shader("shader/3.3.shader.vert", "shader/3.3.shader.frag");
+	Shader colorShader("shader/3.3.shader.vert", "shader/3.3.only_color.frag");
 
 	Model* floor = new Model("room/floor.obj");
 	Model* couch = new Model("room/couch.obj");
 	Model* pointlight = new Model("pointlight/pointlight.obj");
 
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_STENCIL_TEST);
 	glm::mat4 model;
 	glm::mat4 normal;
 
 	// 控制变量
 	camera.position = glm::vec3(2.5f, 1.5f, -1.5f);
 	camera.front = glm::vec3(-.83f, -.34f, .45f);
+	float couch_height = 0.f;
 
 	while (!glfwWindowShouldClose(window)) {
 		// timing
@@ -113,8 +116,12 @@ int main() {
 		keyboard.processInput(window, deltaTime);
 
 		// render init
+		glStencilMask(0xff);	// 先让buffer可写以便清空buffer
 		glClearColor(0.f, 0.f, 0.f, 1.f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		// 模板测试 & 深度测试都通过 -> 设置模板值为1
+		// 模板测试通过 & 深度测试不通过 -> 设置模板值为1（绘制物体被遮挡时依旧绘制边框，有种透视的效果）
+		glStencilOp(GL_KEEP, GL_REPLACE, GL_REPLACE);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 		// render
 		shader.use();
@@ -135,16 +142,8 @@ int main() {
 		shader.setFloat("pointLight.linear", .09f);
 		shader.setFloat("pointLight.quadratic", .032f);
 
-		// model: couch
-		model = glm::mat4(1.0f);
-		normal = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(0.f));
-		model = glm::scale(model, glm::vec3(.5f));
-		normal = glm::transpose(glm::inverse(model));
-		shader.setMat4f("model", 1, glm::value_ptr(model));
-		shader.setMat4f("nrmMat", 1, glm::value_ptr(normal));
-		couch->Draw(shader);
 		// model: floor
+		shader.use();
 		model = glm::mat4(1.f);
 		normal = glm::mat4(1.0f);
 		model = glm::translate(model, glm::vec3(0.f, 0.f, 0.f));
@@ -154,6 +153,43 @@ int main() {
 		shader.setMat4f("model", 1, glm::value_ptr(model));
 		shader.setMat4f("nrmMat", 1, glm::value_ptr(normal));
 		floor->Draw(shader);
+		// 在绘制完其他物体以后
+
+		// model: couch
+		// 先绘制一遍模型，模板设置为总是通过，会让绘制模型的片段的模板值全部设置为1
+		glStencilFunc(GL_ALWAYS, 1, 0xff);
+		// 启用buffer写入
+		glStencilMask(0xff);
+		model = glm::mat4(1.0f);
+		normal = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(0.f, couch_height, 0.f));
+		model = glm::scale(model, glm::vec3(.5f));
+		normal = glm::transpose(glm::inverse(model));
+		shader.setMat4f("model", 1, glm::value_ptr(model));
+		shader.setMat4f("nrmMat", 1, glm::value_ptr(normal));
+		couch->Draw(shader);
+		// couch broad
+		colorShader.use();
+		// 设置模板值不为1的片段通过测试
+		glStencilFunc(GL_NOTEQUAL, 1, 0xff);
+		// 禁用写入buffer
+		glStencilMask(0x00);
+		// 关闭深度测试，可以让边框总是显示不会被遮挡
+		glDisable(GL_DEPTH_TEST);
+		model = glm::mat4(1.0f);
+		normal = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(0.f, couch_height, 0.f));
+		model = glm::scale(model, glm::vec3(.51f));	// 稍微放大一下模型，渲染时比原来稍大的模型片段会被渲染
+		normal = glm::transpose(glm::inverse(model));
+		colorShader.setMat4f("projection", 1, glm::value_ptr(projection));
+		colorShader.setMat4f("view", 1, glm::value_ptr(view));
+		colorShader.setMat4f("model", 1, glm::value_ptr(model));
+		colorShader.setMat4f("nrmMat", 1, glm::value_ptr(normal));
+		// 用渲染为纯色的shader
+		couch->Draw(colorShader);
+		glStencilFunc(GL_ALWAYS, 0, 0xFF);
+		// 重新启用深度测试
+		glEnable(GL_DEPTH_TEST);
 		
 		// model: light
 		lightShader.use();
@@ -173,6 +209,8 @@ int main() {
 		ImGui::Text("camera info: ");
 		ImGui::Text("camera.position: %.2f %.2f %.2f", camera.position.x, camera.position.y, camera.position.z);
 		ImGui::Text("camera.front: %.2f %.2f %.2f", camera.front.x, camera.front.y, camera.front.z);
+		ImGui::Separator();
+		ImGui::SliderFloat("couch.height", &couch_height, -5.f, 5.f);
 		ImGui::Separator();
 		ImGui::End();
 		ImGui::Render();
