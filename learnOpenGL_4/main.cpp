@@ -89,7 +89,8 @@ int main() {
 	);
 
 	Shader lightShader("shader/3.3.only_diff.vert", "shader/3.3.only_diff.frag");
-	Shader shader("shader/3.3.shader.vert", "shader/3.3.shader.frag");
+	Shader shader("shader/3.3.shader.vert", "shader/3.3.depth_shader.frag");
+	// Shader depth_shader("shader/3.3.shader.vert", "shader/3.3.depth_shader.frag");
 
 	Model* floor = new Model("room/floor.obj");
 	Model* couch = new Model("room/couch.obj");
@@ -163,7 +164,7 @@ int main() {
 		model = glm::translate(model, glm::vec3(1.f, 1.f, 0.f));
 		model = glm::scale(model, glm::vec3(.01f));
 		lightShader.setMat4f("model", 1, glm::value_ptr(model));
-		pointlight->Draw(lightShader);
+		// pointlight->Draw(lightShader);
 
 		//Imgui
 		ImGui_ImplOpenGL3_NewFrame();
@@ -180,7 +181,7 @@ int main() {
 		glfwGetFramebufferSize(window, &display_w, &display_h);
 		glViewport(0, 0, display_w, display_h);
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
+		
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
