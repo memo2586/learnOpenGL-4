@@ -1,0 +1,6 @@
+# Blender 4.0.2 MTL File: 'blend_window.blend'
+# www.blender.org
+
+newmtl glass
+map_Kd blending_window.png
+map_Ks specular_default.png
