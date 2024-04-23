@@ -89,10 +89,13 @@ int main() {
 	);
 
 	Shader lightShader("shader/3.3.only_diff.vert", "shader/3.3.only_diff.frag");
+	Shader colorShader("shader/3.3.shader.vert", "shader/3.3.only_color.frag");
 	Shader shader("shader/3.3.shader.vert", "shader/3.3.shader.frag");
 
 	Model* floor = new Model("model/room/floor.obj");
-	Model* couch = new Model("model/room/couch.obj");
+	Model* nanosuit = new Model("model/nanosuit/nanosuit.obj");
+	Model* bignanosuit = new Model("model/nanosuit/1.03nanosuit.obj");
+	Model* cube = new Model("model/room/0.5cube.obj");
 	Model* pointlight = new Model("model/pointlight/pointlight.obj");
 
 	glEnable(GL_DEPTH_TEST);
@@ -101,7 +104,15 @@ int main() {
 
 	// 控制变量
 	camera.position = glm::vec3(2.5f, 1.5f, -1.5f);
-	camera.front = glm::vec3(-.83f, -.34f, .45f);
+	//camera.front = glm::vec3(-.83f, -.34f, .45f);
+
+	glEnable(GL_CULL_FACE);	// 开启面剔除
+
+	//glCullFace(GL_FRONT);	// 设置剔除的面的类型，试试剔除前面
+	//glFrontFace(GL_CW);	// 尝试定义顺时针是前面(因为剔除的是前面所以将顺时针的剔除，可以得到正常的效果)
+
+	//glCullFace(GL_BACK);	// 剔除背面
+	//glFrontFace(GL_CW);		// 定义顺时针是前面(会剔除逆时针的面，所以结果是背面被渲染出来)
 
 	while (!glfwWindowShouldClose(window)) {
 		// timing
@@ -135,15 +146,15 @@ int main() {
 		shader.setFloat("pointLight.linear", .09f);
 		shader.setFloat("pointLight.quadratic", .032f);
 
-		// model: couch
-		model = glm::mat4(1.0f);
-		normal = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(0.f));
-		model = glm::scale(model, glm::vec3(.5f));
-		normal = glm::transpose(glm::inverse(model));
-		shader.setMat4f("model", 1, glm::value_ptr(model));
-		shader.setMat4f("nrmMat", 1, glm::value_ptr(normal));
-		couch->Draw(shader);
+		// model: cube
+		//model = glm::mat4(1.0f);
+		//normal = glm::mat4(1.0f);
+		//model = glm::translate(model, glm::vec3(0., .25f, 0.f));
+		//model = glm::scale(model, glm::vec3(.5f));
+		//normal = glm::transpose(glm::inverse(model));
+		//shader.setMat4f("model", 1, glm::value_ptr(model));
+		//shader.setMat4f("nrmMat", 1, glm::value_ptr(normal));
+		//cube->Draw(shader);
 		// model: floor
 		model = glm::mat4(1.f);
 		normal = glm::mat4(1.0f);
@@ -165,6 +176,32 @@ int main() {
 		lightShader.setMat4f("model", 1, glm::value_ptr(model));
 		pointlight->Draw(lightShader);
 
+		// 先设置为剔除正面
+		glCullFace(GL_FRONT);
+		colorShader.use();
+		colorShader.setMat4f("projection", 1, glm::value_ptr(projection));
+		colorShader.setMat4f("view", 1, glm::value_ptr(view));
+		model = glm::mat4(1.0f);
+		normal = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(0.f, 0.f, 0.f));
+		model = glm::scale(model, glm::vec3(.1f));
+		normal = glm::transpose(glm::inverse(model));
+		colorShader.setMat4f("model", 1, glm::value_ptr(model));
+		shader.setMat4f("nrmMat", 1, glm::value_ptr(normal));
+		bignanosuit->Draw(colorShader);
+
+		// 恢复为剔除背面后正常绘制原来的模型，就可以得到一个纯色的描边
+		glCullFace(GL_BACK);
+		shader.use();
+		model = glm::mat4(1.0f);
+		normal = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(0.f, 0.f, 0.f));
+		model = glm::scale(model, glm::vec3(.1f));
+		normal = glm::transpose(glm::inverse(model));
+		shader.setMat4f("model", 1, glm::value_ptr(model));
+		shader.setMat4f("nrmMat", 1, glm::value_ptr(normal));
+		nanosuit->Draw(shader);
+
 		//Imgui
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
@@ -185,7 +222,8 @@ int main() {
 		glfwPollEvents();
 	}
 
-	delete couch;
+	delete cube;
+	delete nanosuit;
 	delete floor;
 	delete pointlight;
 	glDeleteProgram(shader.ID);
