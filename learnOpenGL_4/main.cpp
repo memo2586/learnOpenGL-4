@@ -112,7 +112,7 @@ int main() {
 	//glFrontFace(GL_CW);	// 尝试定义顺时针是前面(因为剔除的是前面所以将顺时针的剔除，可以得到正常的效果)
 
 	//glCullFace(GL_BACK);	// 剔除背面
-	//glFrontFace(GL_CW);		// 定义顺时针是前面(会剔除逆时针的面，所以结果是背面被渲染出来)
+	//glFrontFace(GL_CW);	// 定义顺时针是前面(会剔除逆时针的面，所以结果是背面被渲染出来)
 
 	while (!glfwWindowShouldClose(window)) {
 		// timing
@@ -146,7 +146,7 @@ int main() {
 		shader.setFloat("pointLight.linear", .09f);
 		shader.setFloat("pointLight.quadratic", .032f);
 
-		// model: cube
+		//// model: cube
 		//model = glm::mat4(1.0f);
 		//normal = glm::mat4(1.0f);
 		//model = glm::translate(model, glm::vec3(0., .25f, 0.f));
@@ -155,6 +155,7 @@ int main() {
 		//shader.setMat4f("model", 1, glm::value_ptr(model));
 		//shader.setMat4f("nrmMat", 1, glm::value_ptr(normal));
 		//cube->Draw(shader);
+
 		// model: floor
 		model = glm::mat4(1.f);
 		normal = glm::mat4(1.0f);
