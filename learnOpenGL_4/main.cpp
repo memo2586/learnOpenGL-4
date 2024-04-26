@@ -92,9 +92,9 @@ int main() {
 	Shader shader("shader/3.3.shader.vert", "shader/3.3.depth_shader.frag");
 	// Shader depth_shader("shader/3.3.shader.vert", "shader/3.3.depth_shader.frag");
 
-	Model* floor = new Model("room/floor.obj");
-	Model* couch = new Model("room/couch.obj");
-	Model* pointlight = new Model("pointlight/pointlight.obj");
+	Model* floor = new Model("model/room/floor.obj");
+	Model* couch = new Model("model/room/couch.obj");
+	Model* pointlight = new Model("model/pointlight/pointlight.obj");
 
 	glEnable(GL_DEPTH_TEST);
 	glm::mat4 model;
