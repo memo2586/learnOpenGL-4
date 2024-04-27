@@ -45,9 +45,9 @@ in vec2 texCoord;
 
 uniform vec3 viewPos;
 uniform Material material;
-uniform SpotLight spotLight;
+//uniform SpotLight spotLight;
 uniform DirLight dirLight;
-uniform PointLight pointLight;
+//uniform PointLight pointLight;
 
 vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir);
 vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir);
@@ -60,8 +60,8 @@ void main(){
 
 	vec3 result = vec3(0.f);
 	if(dirLight.enable) result += CalcDirLight(dirLight, norm, viewDir);
-	if(pointLight.enable) result += CalcPointLight(pointLight, norm, fragPos, viewDir);
-	if(spotLight.enable) result += CalcSpotLight(spotLight, norm, viewDir);
+	//if(pointLight.enable) result += CalcPointLight(pointLight, norm, fragPos, viewDir);
+	//if(spotLight.enable) result += CalcSpotLight(spotLight, norm, viewDir);
 	
 	fragColor = vec4(result, 1.f);
 }
