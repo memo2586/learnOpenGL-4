@@ -189,20 +189,34 @@ int main() {
 		shader.setMat4f("nrmMat", 1, glm::value_ptr(normal));
 		//floor->Draw(shader);
 		
-		//// model: light
-		//lightShader.use();
-		//lightShader.setMat4f("projection", 1, glm::value_ptr(projection));
-		//lightShader.setMat4f("view", 1, glm::value_ptr(view));
-		//model = glm::mat4(1.0f);
-		//model = glm::translate(model, glm::vec3(1.f, 1.f, 0.f));
-		//model = glm::scale(model, glm::vec3(.01f));
-		//lightShader.setMat4f("model", 1, glm::value_ptr(model));
-		//pointlight->Draw(lightShader);
+		// model: light
+		lightShader.use();
+		lightShader.setMat4f("projection", 1, glm::value_ptr(projection));
+		lightShader.setMat4f("view", 1, glm::value_ptr(view));
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(1.f, 1.f, 0.f));
+		model = glm::scale(model, glm::vec3(.01f));
+		lightShader.setMat4f("model", 1, glm::value_ptr(model));
+		pointlight->Draw(lightShader);
 
 		// model: nanosuit
 		envShader.use();
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, skybox);
+		envShader.setFloat("material.shininess", 32.f);
+		envShader.setBool("dirLight.enable", true);
+		envShader.setVec3f("dirLight.direction", glm::vec3(.5f, -.5f, .7f));
+		envShader.setVec3f("dirLight.ambient", glm::vec3(.5f));
+		envShader.setVec3f("dirLight.diffuse", glm::vec3(.8f));
+		envShader.setVec3f("dirLight.specular", glm::vec3(1.f));
+		envShader.setBool("pointLight.enable", true);
+		envShader.setVec3f("pointLight.position", glm::vec3(1.f, 1.f, 0.f));
+		envShader.setVec3f("pointLight.ambient", .1f, .1f, .1f);
+		envShader.setVec3f("pointLight.diffuse", .5f, .5f, .5f);
+		envShader.setVec3f("pointLight.specular", 1.f, 1.f, 1.f);
+		envShader.setFloat("pointLight.constant", 1.f);
+		envShader.setFloat("pointLight.linear", .09f);
+		envShader.setFloat("pointLight.quadratic", .032f);
 		envShader.setInt("skybox", 0);
 		envShader.setVec3f("viewPos", camera.position);
 		envShader.setMat4f("view", view);
@@ -216,9 +230,10 @@ int main() {
 		envShader.setMat4f("model", 1, glm::value_ptr(model));
 		envShader.setMat4f("nrmMat", 1, glm::value_ptr(normal));
 		nanosuit->Draw(envShader);
+		floor->Draw(envShader);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 
-		// 优化：提前深度缓冲，只在通过测试的片段绘制天空盒
+		// 优化：只在通过测试的片段绘制天空盒
 		// 另外需要修改skyboxShader欺骗opengl我们的天空盒深度恒为1
 		glDepthFunc(GL_LEQUAL);	// 更改深度函数，以便当值等于深度缓冲区的内容时深度测试通过
 		skyboxShader.use();
