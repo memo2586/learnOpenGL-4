@@ -187,7 +187,7 @@ int main() {
 		normal = glm::transpose(glm::inverse(model));
 		shader.setMat4f("model", 1, glm::value_ptr(model));
 		shader.setMat4f("nrmMat", 1, glm::value_ptr(normal));
-		//floor->Draw(shader);
+		floor->Draw(shader);
 		
 		// model: light
 		lightShader.use();
@@ -230,7 +230,6 @@ int main() {
 		envShader.setMat4f("model", 1, glm::value_ptr(model));
 		envShader.setMat4f("nrmMat", 1, glm::value_ptr(normal));
 		nanosuit->Draw(envShader);
-		floor->Draw(envShader);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 
 		// 优化：只在通过测试的片段绘制天空盒

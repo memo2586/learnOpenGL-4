@@ -44,6 +44,9 @@
     <ClInclude Include="imgui\imstb_truetype.h">
       <Filter>imgui</Filter>
     </ClInclude>
+    <ClInclude Include="sphere.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="imgui\imgui.cpp">
@@ -88,6 +91,18 @@
       <Filter>shader</Filter>
     </None>
     <None Include="shader\3.3.shader.vert">
+      <Filter>shader</Filter>
+    </None>
+    <None Include="shader\3.3.skyboxShader.vert">
+      <Filter>shader</Filter>
+    </None>
+    <None Include="shader\3.3.envShader.frag">
+      <Filter>shader</Filter>
+    </None>
+    <None Include="shader\3.3.envShader.vert">
+      <Filter>shader</Filter>
+    </None>
+    <None Include="shader\3.3.skyboxShader.frag">
       <Filter>shader</Filter>
     </None>
   </ItemGroup>
