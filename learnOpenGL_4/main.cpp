@@ -88,11 +88,17 @@ int main() {
 		aiProcess_SortByPType
 	);
 
+	{
+		GLint uniformBufferOffsetAlign = 0;
+		glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &uniformBufferOffsetAlign);
+		std::cout << uniformBufferOffsetAlign << std::endl;
+	}
+
 	Shader lightShader("shader/3.3.only_diff.vert", "shader/3.3.only_diff.frag");
 	Shader shader("shader/3.3.shader.vert", "shader/3.3.shader.frag");
 
 	Model* floor = new Model("model/room/floor.obj");
-	Model* couch = new Model("model/room/couch.obj");
+	Model* cube = new Model("model/cube/0.5cube.obj");
 	Model* pointlight = new Model("model/pointlight/pointlight.obj");
 
 	glEnable(GL_DEPTH_TEST);
@@ -100,8 +106,8 @@ int main() {
 	glm::mat4 normal;
 
 	// ¿ØÖÆ±äÁ¿
-	camera.position = glm::vec3(2.5f, 1.5f, -1.5f);
-	camera.front = glm::vec3(-.83f, -.34f, .45f);
+	camera.position = glm::vec3(0.f, 5.f, 0.f);
+	camera.front = glm::vec3(0.f, -1.f, 0.f);
 
 	while (!glfwWindowShouldClose(window)) {
 		// timing
@@ -135,15 +141,6 @@ int main() {
 		shader.setFloat("pointLight.linear", .09f);
 		shader.setFloat("pointLight.quadratic", .032f);
 
-		// model: couch
-		model = glm::mat4(1.0f);
-		normal = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(0.f));
-		model = glm::scale(model, glm::vec3(.5f));
-		normal = glm::transpose(glm::inverse(model));
-		shader.setMat4f("model", 1, glm::value_ptr(model));
-		shader.setMat4f("nrmMat", 1, glm::value_ptr(normal));
-		couch->Draw(shader);
 		// model: floor
 		model = glm::mat4(1.f);
 		normal = glm::mat4(1.0f);
@@ -165,6 +162,14 @@ int main() {
 		lightShader.setMat4f("model", 1, glm::value_ptr(model));
 		pointlight->Draw(lightShader);
 
+		// model: cube
+		model = glm::mat4(1.0f);
+		normal = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(0.f, .501f, 0.f));
+		model = glm::scale(model, glm::vec3(1.f));
+		lightShader.setMat4f("model", 1, glm::value_ptr(model));
+		cube->Draw(lightShader);
+
 		//Imgui
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
@@ -185,7 +190,7 @@ int main() {
 		glfwPollEvents();
 	}
 
-	delete couch;
+	delete cube;
 	delete floor;
 	delete pointlight;
 	glDeleteProgram(shader.ID);

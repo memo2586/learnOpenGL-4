@@ -64,6 +64,8 @@ void main(){
 	if(spotLight.enable) result += CalcSpotLight(spotLight, norm, viewDir);
 	
 	fragColor = vec4(result, 1.f);
+//	if(gl_FragCoord.x < 800) fragColor += vec4(0.2f, 0.f, 0.f, 0.f);
+//    else fragColor += vec4(0.f, 0.2f, 0.f, 0.f);
 }
 
 vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir){
