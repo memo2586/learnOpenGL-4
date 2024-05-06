@@ -162,6 +162,7 @@
     <ClCompile Include="stb_image.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="shader\3.3.only_color.frag" />
     <None Include="shader\3.3.only_diff.frag" />
     <None Include="shader\3.3.only_diff.vert" />
     <None Include="shader\3.3.shader.frag" />

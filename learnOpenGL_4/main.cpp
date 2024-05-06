@@ -88,9 +88,11 @@ int main() {
 		aiProcess_SortByPType
 	);
 
-	Shader shader("shader/3.3.shader.vert", "shader/3.3.shader.frag", "shader/3.3.shader.geom");
+	Shader shader("shader/3.3.shader.vert", "shader/3.3.shader.frag");
+	Shader shaderNormal("shader/3.3.shader.vert", "shader/3.3.only_color.frag", "shader/3.3.shader.geom");
 
 	Model* aersa = new Model("model/aersa/aersa01.pmx");
+	//Model* nanosuit = new Model("model/nanosuit/nanosuit.obj");
 
 	glEnable(GL_DEPTH_TEST);
 	glm::mat4 model;
@@ -122,14 +124,32 @@ int main() {
 		shader.setMat4f("view", 1, glm::value_ptr(view));
 		shader.setVec3f("viewPos", camera.position);
 		shader.setFloat("material.shininess", 32.f);
-		shader.setFloat("time", glfwGetTime());
 
 		// model: aersa
 		model = glm::mat4(1.0f);
+		normal = glm::mat4(1.0f);
 		model = glm::translate(model, glm::vec3(0.f));
 		model = glm::scale(model, glm::vec3(.1f));
+		normal = glm::inverse(glm::transpose(model));
 		shader.setMat4f("model", 1, glm::value_ptr(model));
+		shader.setMat4f("nrmMat", 1, glm::value_ptr(normal));
 		aersa->Draw(shader);
+
+		// 法线可视化
+		shaderNormal.use();
+		shaderNormal.setMat4f("projection", 1, glm::value_ptr(projection));
+		shaderNormal.setMat4f("view", 1, glm::value_ptr(view));
+		shaderNormal.setFloat("material.shininess", 32.f);
+
+		// model: aersa
+		model = glm::mat4(1.0f);
+		normal = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(0.f));
+		model = glm::scale(model, glm::vec3(.1f));
+		normal = glm::inverse(glm::transpose(model));
+		shaderNormal.setMat4f("model", 1, glm::value_ptr(model));
+		shaderNormal.setMat4f("nrmMat", 1, glm::value_ptr(normal));
+		//aersa->Draw(shaderNormal);
 
 		//Imgui
 		ImGui_ImplOpenGL3_NewFrame();

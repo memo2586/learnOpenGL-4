@@ -7,10 +7,10 @@ struct Material{
 	float shininess;
 };
 
-in vec2 texCoord;
+in vec2 TexCoord;
 
 uniform Material material;
 
 void main(){	
-	fragColor = vec4(vec3(texture(material.texture_diffuse1, texCoord)), 1.f);
+	fragColor = vec4(vec3(texture(material.texture_diffuse1, TexCoord)), 1.f);
 }
