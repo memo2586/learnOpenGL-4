@@ -20,8 +20,8 @@
 #pragma comment (lib, "assimp-vc143-mt.lib")
 
 // window config
-const unsigned int SCR_WIDTH = 1600;
-const unsigned int SCR_HEIGHT = 1200;
+const unsigned int SCR_WIDTH = 800;
+const unsigned int SCR_HEIGHT = 600;
 
 // camera
 Camera camera(glm::vec3(0.f));
@@ -88,20 +88,27 @@ int main() {
 		aiProcess_SortByPType
 	);
 
-	Shader lightShader("shader/3.3.only_diff.vert", "shader/3.3.only_diff.frag");
-	Shader shader("shader/3.3.shader.vert", "shader/3.3.shader.frag");
+	float points[] = {
+		-0.5f,  0.5f, 1.0f, 0.0f, 0.0f, // 左上
+		 0.5f,  0.5f, 0.0f, 1.0f, 0.0f, // 右上
+		 0.5f, -0.5f, 0.0f, 0.0f, 1.0f, // 右下
+		-0.5f, -0.5f, 1.0f, 1.0f, 0.0f  // 左下
+	};
 
-	Model* floor = new Model("model/room/floor.obj");
-	Model* couch = new Model("model/room/couch.obj");
-	Model* pointlight = new Model("model/pointlight/pointlight.obj");
+	unsigned int vao, vbo;
+	glGenVertexArrays(1, &vao);
+	glGenBuffers(1, &vbo);
+	glBindVertexArray(vao);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(points), points, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(2 * sizeof(float)));
+	glEnableVertexAttribArray(1);
+	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-	glEnable(GL_DEPTH_TEST);
-	glm::mat4 model;
-	glm::mat4 normal;
-
-	// 控制变量
-	camera.position = glm::vec3(2.5f, 1.5f, -1.5f);
-	camera.front = glm::vec3(-.83f, -.34f, .45f);
+	Shader shader("shader/3.3.shader.vert", "shader/3.3.shader.frag", "shader/3.3.shader.geom");
 
 	while (!glfwWindowShouldClose(window)) {
 		// timing
@@ -118,78 +125,14 @@ int main() {
 
 		// render
 		shader.use();
-		glm::mat4 projection = glm::perspective(glm::radians(camera.zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-		glm::mat4 view = camera.getViewMatrix();
-		shader.setMat4f("projection", 1, glm::value_ptr(projection));
-		shader.setMat4f("view", 1, glm::value_ptr(view));
-		shader.setVec3f("viewPos", camera.position);
-		shader.setFloat("material.shininess", 32.f);
-
-		// lighting
-		shader.setBool("pointLight.enable", 1);
-		shader.setVec3f("pointLight.position", glm::vec3(1.f, 1.f, 0.f));
-		shader.setVec3f("pointLight.ambient", .1f, .1f, .1f);
-		shader.setVec3f("pointLight.diffuse", .5f, .5f, .5f);
-		shader.setVec3f("pointLight.specular", 1.f, 1.f, 1.f);
-		shader.setFloat("pointLight.constant", 1.f);
-		shader.setFloat("pointLight.linear", .09f);
-		shader.setFloat("pointLight.quadratic", .032f);
-
-		// model: couch
-		model = glm::mat4(1.0f);
-		normal = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(0.f));
-		model = glm::scale(model, glm::vec3(.5f));
-		normal = glm::transpose(glm::inverse(model));
-		shader.setMat4f("model", 1, glm::value_ptr(model));
-		shader.setMat4f("nrmMat", 1, glm::value_ptr(normal));
-		couch->Draw(shader);
-		// model: floor
-		model = glm::mat4(1.f);
-		normal = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(0.f, 0.f, 0.f));
-		model = glm::scale(model, glm::vec3(1.f));
-		model = glm::rotate(model, glm::radians(0.f), glm::vec3(1.f, 0.f, 0.f));
-		normal = glm::transpose(glm::inverse(model));
-		shader.setMat4f("model", 1, glm::value_ptr(model));
-		shader.setMat4f("nrmMat", 1, glm::value_ptr(normal));
-		floor->Draw(shader);
-		
-		// model: light
-		lightShader.use();
-		lightShader.setMat4f("projection", 1, glm::value_ptr(projection));
-		lightShader.setMat4f("view", 1, glm::value_ptr(view));
-		model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(1.f, 1.f, 0.f));
-		model = glm::scale(model, glm::vec3(.01f));
-		lightShader.setMat4f("model", 1, glm::value_ptr(model));
-		pointlight->Draw(lightShader);
-
-		//Imgui
-		ImGui_ImplOpenGL3_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
-		ImGui::NewFrame();
-		ImGui::Begin("Menu");
-		ImGui::Text("camera info: ");
-		ImGui::Text("camera.position: %.2f %.2f %.2f", camera.position.x, camera.position.y, camera.position.z);
-		ImGui::Text("camera.front: %.2f %.2f %.2f", camera.front.x, camera.front.y, camera.front.z);
-		ImGui::Separator();
-		ImGui::End();
-		ImGui::Render();
-		int display_w, display_h;
-		glfwGetFramebufferSize(window, &display_w, &display_h);
-		glViewport(0, 0, display_w, display_h);
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+		glBindVertexArray(vao);
+		glDrawArrays(GL_POINTS, 0, 4);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
 
-	delete couch;
-	delete floor;
-	delete pointlight;
 	glDeleteProgram(shader.ID);
-	glDeleteProgram(lightShader.ID);
 	glfwTerminate();
 
 	return 0;
