@@ -149,7 +149,7 @@ int main() {
 		normal = glm::inverse(glm::transpose(model));
 		shaderNormal.setMat4f("model", 1, glm::value_ptr(model));
 		shaderNormal.setMat4f("nrmMat", 1, glm::value_ptr(normal));
-		//aersa->Draw(shaderNormal);
+		aersa->Draw(shaderNormal);
 
 		//Imgui
 		ImGui_ImplOpenGL3_NewFrame();
