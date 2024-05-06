@@ -24,7 +24,7 @@ const unsigned int SCR_WIDTH = 1600;
 const unsigned int SCR_HEIGHT = 1200;
 
 // camera
-Camera camera(glm::vec3(0.f));
+Camera camera(glm::vec3(0.f), glm::vec2(SCR_WIDTH / 2.f, SCR_HEIGHT / 2.f));
 bool firstMouse = true;
 float lastXpos = SCR_WIDTH / 2.f;
 float lastYpos = SCR_HEIGHT / 2.f;
@@ -88,20 +88,18 @@ int main() {
 		aiProcess_SortByPType
 	);
 
-	Shader lightShader("shader/3.3.only_diff.vert", "shader/3.3.only_diff.frag");
-	Shader shader("shader/3.3.shader.vert", "shader/3.3.shader.frag");
+	Shader shader("shader/3.3.shader.vert", "shader/3.3.shader.frag", "shader/3.3.shader.geom");
 
-	Model* floor = new Model("model/room/floor.obj");
-	Model* couch = new Model("model/room/couch.obj");
-	Model* pointlight = new Model("model/pointlight/pointlight.obj");
+	Model* aersa = new Model("model/aersa/aersa01.pmx");
 
 	glEnable(GL_DEPTH_TEST);
 	glm::mat4 model;
 	glm::mat4 normal;
 
 	// ¿ØÖÆ±äÁ¿
-	camera.position = glm::vec3(2.5f, 1.5f, -1.5f);
-	camera.front = glm::vec3(-.83f, -.34f, .45f);
+	camera.position = glm::vec3(0.f, 1.4f, 3.f);
+	camera.front = glm::vec3(0.f, -.1f, -1.f);
+	camera.lock = true;
 
 	while (!glfwWindowShouldClose(window)) {
 		// timing
@@ -124,46 +122,14 @@ int main() {
 		shader.setMat4f("view", 1, glm::value_ptr(view));
 		shader.setVec3f("viewPos", camera.position);
 		shader.setFloat("material.shininess", 32.f);
+		shader.setFloat("time", glfwGetTime());
 
-		// lighting
-		shader.setBool("pointLight.enable", 1);
-		shader.setVec3f("pointLight.position", glm::vec3(1.f, 1.f, 0.f));
-		shader.setVec3f("pointLight.ambient", .1f, .1f, .1f);
-		shader.setVec3f("pointLight.diffuse", .5f, .5f, .5f);
-		shader.setVec3f("pointLight.specular", 1.f, 1.f, 1.f);
-		shader.setFloat("pointLight.constant", 1.f);
-		shader.setFloat("pointLight.linear", .09f);
-		shader.setFloat("pointLight.quadratic", .032f);
-
-		// model: couch
+		// model: aersa
 		model = glm::mat4(1.0f);
-		normal = glm::mat4(1.0f);
 		model = glm::translate(model, glm::vec3(0.f));
-		model = glm::scale(model, glm::vec3(.5f));
-		normal = glm::transpose(glm::inverse(model));
+		model = glm::scale(model, glm::vec3(.1f));
 		shader.setMat4f("model", 1, glm::value_ptr(model));
-		shader.setMat4f("nrmMat", 1, glm::value_ptr(normal));
-		couch->Draw(shader);
-		// model: floor
-		model = glm::mat4(1.f);
-		normal = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(0.f, 0.f, 0.f));
-		model = glm::scale(model, glm::vec3(1.f));
-		model = glm::rotate(model, glm::radians(0.f), glm::vec3(1.f, 0.f, 0.f));
-		normal = glm::transpose(glm::inverse(model));
-		shader.setMat4f("model", 1, glm::value_ptr(model));
-		shader.setMat4f("nrmMat", 1, glm::value_ptr(normal));
-		floor->Draw(shader);
-		
-		// model: light
-		lightShader.use();
-		lightShader.setMat4f("projection", 1, glm::value_ptr(projection));
-		lightShader.setMat4f("view", 1, glm::value_ptr(view));
-		model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(1.f, 1.f, 0.f));
-		model = glm::scale(model, glm::vec3(.01f));
-		lightShader.setMat4f("model", 1, glm::value_ptr(model));
-		pointlight->Draw(lightShader);
+		aersa->Draw(shader);
 
 		//Imgui
 		ImGui_ImplOpenGL3_NewFrame();
@@ -185,11 +151,8 @@ int main() {
 		glfwPollEvents();
 	}
 
-	delete couch;
-	delete floor;
-	delete pointlight;
+	delete aersa;
 	glDeleteProgram(shader.ID);
-	glDeleteProgram(lightShader.ID);
 	glfwTerminate();
 
 	return 0;
