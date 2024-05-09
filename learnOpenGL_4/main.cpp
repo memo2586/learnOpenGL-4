@@ -92,22 +92,52 @@ int main() {
 	Shader shader("shader/3.3.shader.vert", "shader/3.3.shader.frag");
 
 	Model* floor = new Model("model/room/floor.obj");
-	Model* couch = new Model("model/room/couch.obj");
 	Model* pointlight = new Model("model/pointlight/pointlight.obj");
 
+	UniformBufferManager* ubm = new UniformBufferManager();
+
+	unsigned int uniform_red = 1, uniform_blue = 2;
+	float shininess = .1f;
+	unsigned int block1 = ubm->createUniformBuffer(256, GL_STATIC_DRAW);
+	lightShader.uniformBlockBinding("block1", 1);
+	ubm->uniformBufferBinding(block1, 1);
+
+	glm::mat3 m3 = { glm::vec3{1.f, 0.f, 0.f}, glm::vec3(0.f, 1.f, 0.f), glm::vec3(0.f, 0.f, 1.f) };
+	glm::mat4 m4 = { glm::vec4{1.f, 0.f, 0.f, 1.f}, glm::vec4(0.f, 1.f, 0.f, 1.f), glm::vec4(0.f, 0.f, 1.f, 1.f), glm::vec4(0.f, 0.f, 1.f, 1.f) };
+	glm::mat4 m4a = { glm::vec4{1.f, 1.f, 0.f, 1.f}, glm::vec4(0.f, 1.f, 0.f, 1.f), glm::vec4(0.f, 0.f, 1.f, 1.f), glm::vec4(0.f, 0.f, 1.f, 1.f) };
+	glm::mat4 m4b = { glm::vec4{1.f, 0.f, 1.f, 1.f}, glm::vec4(0.f, 1.f, 0.f, 1.f), glm::vec4(0.f, 0.f, 1.f, 1.f), glm::vec4(0.f, 0.f, 1.f, 1.f) };
+	
+	float arr[] = { .2f, .6f, .8f };
+	glm::vec2 v2arr[] = { glm::vec2(1.f, 0.f), glm::vec2(0.f, 1.f) };
+	glm::vec3 v3arr[] = { glm::vec3(1.f, 1.f, 0.f), glm::vec3(0.f, 1.f, 1.f) };
+	glm::vec4 v4arr[] = { glm::vec4(1.f), glm::vec4(0.f) };
+	ubm->setUniformBufferVec3f(block1, "v2", glm::vec3(1.f, 0.f, 0.f));
+	ubm->setUniformBufferInt(block1, "i", 12);
+	ubm->setUniformBufferInt(block1, "j", 34);
+
 	glEnable(GL_DEPTH_TEST);
-	glm::mat4 model;
 	glm::mat4 normal;
 
 	// øÿ÷∆±‰¡ø
 	camera.position = glm::vec3(2.5f, 1.5f, -1.5f);
 	camera.front = glm::vec3(-.83f, -.34f, .45f);
+	camera.lock = true;
 
 	while (!glfwWindowShouldClose(window)) {
 		// timing
 		float curTime = static_cast<float>(glfwGetTime());
 		deltaTime = curTime - lastTime;
 		lastTime = curTime;
+
+		// mvp uniform buffer
+		glm::mat4 model = glm::mat4(1.f);
+		glm::mat4 projection = glm::perspective(glm::radians(camera.zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+		glm::mat4 view = camera.getViewMatrix();
+		unsigned int mvpBuffer = ubm->createUniformBuffer(256, GL_STATIC_DRAW);
+		ubm->uniformBufferBinding(mvpBuffer, 0);
+		ubm->setUniformBufferMat4f(mvpBuffer, "model", model);
+		ubm->setUniformBufferMat4f(mvpBuffer, "view", view);
+		ubm->setUniformBufferMat4f(mvpBuffer, "projection", projection);
 
 		// input
 		keyboard.processInput(window, deltaTime);
@@ -118,8 +148,6 @@ int main() {
 
 		// render
 		shader.use();
-		glm::mat4 projection = glm::perspective(glm::radians(camera.zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-		glm::mat4 view = camera.getViewMatrix();
 		shader.setMat4f("projection", 1, glm::value_ptr(projection));
 		shader.setMat4f("view", 1, glm::value_ptr(view));
 		shader.setVec3f("viewPos", camera.position);
@@ -143,7 +171,6 @@ int main() {
 		normal = glm::transpose(glm::inverse(model));
 		shader.setMat4f("model", 1, glm::value_ptr(model));
 		shader.setMat4f("nrmMat", 1, glm::value_ptr(normal));
-		couch->Draw(shader);
 		// model: floor
 		model = glm::mat4(1.f);
 		normal = glm::mat4(1.0f);
@@ -157,12 +184,10 @@ int main() {
 		
 		// model: light
 		lightShader.use();
-		lightShader.setMat4f("projection", 1, glm::value_ptr(projection));
-		lightShader.setMat4f("view", 1, glm::value_ptr(view));
-		model = glm::mat4(1.0f);
 		model = glm::translate(model, glm::vec3(1.f, 1.f, 0.f));
 		model = glm::scale(model, glm::vec3(.01f));
-		lightShader.setMat4f("model", 1, glm::value_ptr(model));
+		ubm->setUniformBufferMat4f(mvpBuffer, "model", model);
+		lightShader.uniformBlockBinding("mvp", 0);
 		pointlight->Draw(lightShader);
 
 		//Imgui
@@ -185,9 +210,9 @@ int main() {
 		glfwPollEvents();
 	}
 
-	delete couch;
 	delete floor;
 	delete pointlight;
+	delete ubm;
 	glDeleteProgram(shader.ID);
 	glDeleteProgram(lightShader.ID);
 	glfwTerminate();
