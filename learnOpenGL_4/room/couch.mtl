@@ -1,0 +1,11 @@
+# Blender 4.0.2 MTL File: 'couch.blend'
+# www.blender.org
+
+newmtl material.001
+map_Kd texture/fabric066/Fabric066_2K-PNG_Color.png
+
+newmtl material.002
+map_Kd texture/fabric077/Fabric077_2K-PNG_Color.png
+
+newmtl material.003
+map_Kd texture/plastic012A/Plastic012A_2K-PNG_Color.png
