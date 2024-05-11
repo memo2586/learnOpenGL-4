@@ -48,6 +48,7 @@ int main() {
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_SAMPLES, 4);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	// create glfwwindow
 	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL4", NULL, NULL);
@@ -92,10 +93,12 @@ int main() {
 	Shader shader("shader/3.3.shader.vert", "shader/3.3.shader.frag");
 
 	Model* floor = new Model("model/room/floor.obj");
-	Model* couch = new Model("model/room/couch.obj");
+	Model* erusa = new Model("model/erusa/erusa01.pmx");
 	Model* pointlight = new Model("model/pointlight/pointlight.obj");
 
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_MULTISAMPLE);
+	glEnable(GL_CULL_FACE);
 	glm::mat4 model;
 	glm::mat4 normal;
 
@@ -135,15 +138,6 @@ int main() {
 		shader.setFloat("pointLight.linear", .09f);
 		shader.setFloat("pointLight.quadratic", .032f);
 
-		// model: couch
-		model = glm::mat4(1.0f);
-		normal = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(0.f));
-		model = glm::scale(model, glm::vec3(.5f));
-		normal = glm::transpose(glm::inverse(model));
-		shader.setMat4f("model", 1, glm::value_ptr(model));
-		shader.setMat4f("nrmMat", 1, glm::value_ptr(normal));
-		couch->Draw(shader);
 		// model: floor
 		model = glm::mat4(1.f);
 		normal = glm::mat4(1.0f);
@@ -165,6 +159,16 @@ int main() {
 		lightShader.setMat4f("model", 1, glm::value_ptr(model));
 		pointlight->Draw(lightShader);
 
+		// model: erusa
+		model = glm::mat4(1.0f);
+		normal = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(0.f));
+		model = glm::scale(model, glm::vec3(.1f));
+		normal = glm::transpose(glm::inverse(model));
+		lightShader.setMat4f("model", 1, glm::value_ptr(model));
+		lightShader.setMat4f("nrmMat", 1, glm::value_ptr(normal));
+		erusa->Draw(lightShader);
+
 		//Imgui
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
@@ -185,7 +189,7 @@ int main() {
 		glfwPollEvents();
 	}
 
-	delete couch;
+	delete erusa;
 	delete floor;
 	delete pointlight;
 	glDeleteProgram(shader.ID);
